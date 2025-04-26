@@ -4,7 +4,6 @@ const webpack = require('webpack');
 const dotenv = require('dotenv');
 const fs = require('fs');
 
-// Load environment variables
 const env = dotenv.parse(fs.readFileSync('.env'));
 const envKeys = Object.keys(env).reduce((prev, next) => {
   prev[`process.env.${next}`] = JSON.stringify(env[next]);

@@ -265,6 +265,32 @@ a:hover {
 .api-status {
   font-size: 12px;
   margin-top: 8px;
+  color: #718096;
+}
+
+.api-success {
+  color: #38a169;
+}
+
+.api-error {
+  color: #e53e3e;
+}
+
+.api-status {
+  display: none;
+}
+
+.api-success {
+  display: none;
+}
+
+.api-error {
+  display: none;
+}
+
+.api-status {
+  font-size: 12px;
+  margin-top: 8px;
   color: #64748b;
   text-align: center;
 }

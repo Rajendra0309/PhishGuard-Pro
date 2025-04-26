@@ -4,145 +4,775 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PhishGuard Pro - Detection History</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    :root {
+      --primary: #2563eb;
+      --primary-light: #dbeafe;
+      --primary-dark: #1e40af;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --success: #16a34a;
+      --success-light: #dcfce7;
+      --warning: #ea580c;
+      --warning-light: #ffedd5;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --radius-sm: 0.125rem;
+      --radius: 0.25rem;
+      --radius-md: 0.375rem;
+      --radius-lg: 0.5rem;
+      --radius-xl: 0.75rem;
+    }
+
+    * {
       margin: 0;
-      padding: 20px;
-      background-color: #f5f7fa;
-      color: #333;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--gray-100);
+      color: var(--gray-800);
+      line-height: 1.5;
     }
     
     .container {
-      max-width: 1000px;
+      max-width: 1200px;
       margin: 0 auto;
+      padding: 1.5rem;
+    }
+    
+    header {
       background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      padding: 20px;
+      box-shadow: var(--shadow);
+      padding: 1rem 0;
+      margin-bottom: 2rem;
+    }
+    
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 600;
+      font-size: 1.25rem;
+      color: var(--gray-900);
+    }
+    
+    .logo i {
+      color: var(--primary);
+      font-size: 1.5rem;
     }
     
     h1 {
-      margin-top: 0;
-      color: #2c3e50;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 15px;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 1.5rem;
     }
     
-    .stats {
+    .card {
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    
+    .card-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--gray-200);
       display: flex;
-      margin-bottom: 20px;
+      justify-content: space-between;
+      align-items: center;
     }
     
-    .stat-box {
-      background-color: #f8fafc;
-      border-radius: 8px;
-      padding: 15px;
-      margin-right: 20px;
-      flex: 1;
+    .card-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--gray-800);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .card-title i {
+      color: var (--primary);
+    }
+    
+    .card-body {
+      padding: 1.5rem;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    
+    .stat-card {
+      background-color: white;
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
       text-align: center;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid var(--gray-200);
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
     }
     
     .stat-value {
-      font-size: 24px;
-      font-weight: bold;
-      color: #2d3748;
-      margin-bottom: 5px;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 0.5rem;
+      line-height: 1;
     }
     
     .stat-label {
-      color: #718096;
-      font-size: 14px;
+      color: var(--gray-600);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+    }
+
+    .stat-trend {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      margin-top: 0.25rem;
+      font-size: 0.875rem;
+    }
+
+    .trend-up {
+      color: var(--success);
+    }
+
+    .trend-down {
+      color: var(--danger);
+    }
+    
+    .chart-container {
+      height: 350px;
+      position: relative;
+    }
+    
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background-color: var(--gray-50);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      min-width: 150px;
+      flex: 1;
+    }
+    
+    .filter-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .filter-input {
+      padding: 0.5rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      color: var(--gray-700);
+      width: 100%;
+    }
+    
+    .filter-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    
+    button {
+      padding: 0.5rem 1rem;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+    
+    button:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    button.secondary {
+      background-color: white;
+      color: var(--gray-700);
+      border: 1px solid var(--gray-300);
+    }
+    
+    button.secondary:hover {
+      background-color: var(--gray-50);
+    }
+    
+    .search-box {
+      flex: 2;
+      min-width: 250px;
+      position: relative;
+    }
+    
+    .search-box input {
+      padding: 0.5rem 0.5rem 0.5rem 2rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      width: 100%;
+    }
+    
+    .search-box i {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray-500);
+    }
+    
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    
+    .filter-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
     }
     
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
-    }
-    
-    th, td {
       text-align: left;
-      padding: 12px;
-      border-bottom: 1px solid #edf2f7;
+      font-size: 0.875rem;
     }
     
     th {
-      background-color: #f7fafc;
-      color: #4a5568;
+      background-color: var(--gray-50);
+      color: var(--gray-700);
       font-weight: 600;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--gray-200);
+      letter-spacing: 0.025em;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+    }
+    
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--gray-200);
+      color: var(--gray-700);
+    }
+    
+    tr:last-child td {
+      border-bottom: none;
     }
     
     tr:hover {
-      background-color: #f9f9f9;
+      background-color: var(--gray-50);
+    }
+    
+    .url-cell {
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .type-cell {
+      font-weight: 500;
+    }
+    
+    .type-tag {
+      display: inline-flex;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 1rem;
+      font-weight: 500;
+      line-height: 1;
+    }
+    
+    .type-url {
+      background-color: var(--primary-light);
+      color: var(--primary-dark);
+    }
+    
+    .type-text {
+      background-color: var(--warning-light);
+      color: var(--warning);
+    }
+    
+    .type-form {
+      background-color: var(--danger-light);
+      color: var(--danger);
+    }
+    
+    .type-message {
+      background-color: var(--success-light);
+      color: var(--success);
+    }
+    
+    .type-image {
+      background-color: var(--gray-200);
+      color: var(--gray-700);
     }
     
     .risk-high {
-      color: #e53e3e;
-      font-weight: bold;
+      color: var(--danger);
+      font-weight: 600;
     }
     
     .risk-medium {
-      color: #dd6b20;
+      color: var(--warning);
+      font-weight: 500;
     }
     
     .risk-low {
-      color: #38a169;
+      color: var(--success);
+    }
+    
+    .action-cell {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--gray-200);
+    }
+    
+    .pagination-info {
+      color: var(--gray-600);
+      font-size: 0.875rem;
+    }
+    
+    .pagination-controls {
+      display: flex;
+      gap: 0.25rem;
+    }
+    
+    .page-btn {
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      padding: 0.375rem 0.625rem;
+      font-size: 0.75rem;
+      color: var(--gray-700);
+      background-color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .page-btn:hover {
+      background-color: var(--gray-50);
+    }
+    
+    .page-btn.active {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+    
+    .page-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .donut-charts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .donut-chart {
+      text-align: center;
+    }
+    
+    .donut-container {
+      position: relative;
+      height: 150px;
+      margin: 0 auto;
+    }
+    
+    .donut-label {
+      margin-top: 1rem;
+      font-weight: 600;
+      color: var(--gray-800);
+      font-size: 0.875rem;
+    }
+    
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      justify-content: center;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-size: 0.75rem;
+    }
+    
+    .legend-color {
+      width: 0.75rem;
+      height: 0.75rem;
+      border-radius: 50%;
     }
     
     .no-data {
       text-align: center;
-      padding: 40px;
-      color: #718096;
+      padding: 3rem 1rem;
+      color: var(--gray-500);
+    }
+    
+    .no-data i {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+    
+    .no-data p {
+      font-size: 1rem;
       font-style: italic;
     }
     
-    .chart-container {
-      margin: 30px 0;
-      height: 300px;
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .donut-charts {
+        grid-template-columns: 1fr;
+      }
+      
+      .filter-group {
+        min-width: 100px;
+      }
+      
+      .filter-actions {
+        flex-direction: column;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .filters {
+        flex-direction: column;
+      }
+      
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+    }
+
+    /* Data visualization styles */
+    .chart-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--gray-200);
+      margin-bottom: 1rem;
+    }
+
+    .chart-tab {
+      padding: 0.75rem 1.25rem;
+      cursor: pointer;
+      color: var(--gray-600);
+      border-bottom: 3px solid transparent;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .chart-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .chart-tab:hover:not(.active) {
+      color: var(--gray-800);
+      border-bottom-color: var(--gray-300);
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      background-color: var(--gray-800);
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transform: translateX(150%);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      background-color: var(--success);
+    }
+
+    .toast.error {
+      background-color: var(--danger);
     }
   </style>
 </head>
 <body>
+  <header>
+    <div class="container">
+      <div class="logo">
+        <i class="fas fa-shield-alt"></i> PhishGuard Pro
+      </div>
+      <button onclick="window.close()" class="secondary">
+        <i class="fas fa-arrow-left"></i> Back to Extension
+      </button>
+    </div>
+  </header>
+
   <div class="container">
-    <h1>PhishGuard Pro - Detection History</h1>
-    
-    <div class="stats">
-      <div class="stat-box">
-        <div class="stat-value" id="totalScanned">0</div>
-        <div class="stat-label">Total Scans</div>
+    <h1>Detection History Dashboard</h1>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fas fa-chart-line"></i> Key Statistics
+        </div>
       </div>
-      <div class="stat-box">
-        <div class="stat-value" id="phishingDetected">0</div>
-        <div class="stat-label">Threats Detected</div>
+      <div class="card-body">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="totalScanned">0</div>
+            <div class="stat-label">Total Scans</div>
+            <div class="stat-trend" id="scanTrend">
+              <i class="fas fa-arrow-up trend-up"></i> <span>0% this week</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="phishingDetected">0</div>
+            <div class="stat-label">Threats Detected</div>
+            <div class="stat-trend" id="threatTrend">
+              <i class="fas fa-arrow-up trend-up"></i> <span>0% this week</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="detectionRate">0%</div>
+            <div class="stat-label">Detection Rate</div>
+            <div class="stat-trend" id="rateTrend">
+              <i class="fas fa-minus"></i> <span>No change</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="highRiskCount">0</div>
+            <div class="stat-label">High Risk Threats</div>
+            <div class="stat-trend" id="highRiskTrend">
+              <i class="fas fa-minus"></i> <span>No change</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="stat-box">
-        <div class="stat-value" id="detectionRate">0%</div>
-        <div class="stat-label">Detection Rate</div>
+    </div>
+
+    <div class="card chart-card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fas fa-chart-area"></i> Detection Activity
+        </div>
+        <div class="chart-tabs">
+          <div class="chart-tab active" id="weeklyTab">7 Days</div>
+          <div class="chart-tab" id="monthlyTab">30 Days</div>
+          <div class="chart-tab" id="rateTab">Detection Rate</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="detectionChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fas fa-chart-pie"></i> Threat Distribution
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="donut-charts">
+          <div class="donut-chart">
+            <div class="donut-container">
+              <canvas id="threatTypeChart"></canvas>
+            </div>
+            <div class="donut-label">By Threat Type</div>
+            <div class="legend" id="threatTypeLegend"></div>
+          </div>
+          <div class="donut-chart">
+            <div class="donut-container">
+              <canvas id="sourceChart"></canvas>
+            </div>
+            <div class="donut-label">By Content Source</div>
+            <div class="legend" id="sourceLegend"></div>
+          </div>
+          <div class="donut-chart">
+            <div class="donut-container">
+              <canvas id="riskChart"></canvas>
+            </div>
+            <div class="donut-label">By Risk Level</div>
+            <div class="legend" id="riskLegend"></div>
+          </div>
+        </div>
       </div>
     </div>
     
-    <div class="chart-container">
-      <canvas id="detectionChart"></canvas>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fas fa-history"></i> Detection History
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="filters">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search by URL or threat type..." class="filter-input">
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Date Range</label>
+            <select id="dateFilter" class="filter-input">
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Threat Type</label>
+            <select id="typeFilter" class="filter-input">
+              <option value="all">All Types</option>
+              <option value="url">URL</option>
+              <option value="text">Text Content</option>
+              <option value="form">Form</option>
+              <option value="message">Message</option>
+              <option value="image">Image</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Risk Level</label>
+            <select id="riskFilter" class="filter-input">
+              <option value="all">All Levels</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button id="applyFilters">
+              <i class="fas fa-filter"></i> Apply
+            </button>
+            <button id="resetFilters" class="secondary">
+              <i class="fas fa-undo"></i> Reset
+            </button>
+          </div>
+        </div>
+        
+        <table id="detectionsTable">
+          <thead>
+            <tr>
+              <th>Date & Time</th>
+              <th>URL</th>
+              <th>Type</th>
+              <th>Risk Level</th>
+              <th>Action</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Will be populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <div class="pagination-info">
+          Showing <span id="startEntry">0</span> to <span id="endEntry">0</span> of <span id="totalEntries">0</span> entries
+        </div>
+        <div class="pagination-controls">
+          <button class="page-btn disabled" id="prevPage">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <div id="paginationNumbers"></div>
+          <button class="page-btn disabled" id="nextPage">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
     </div>
-    
-    <h2>Recent Detections</h2>
-    <table id="detectionsTable">
-      <thead>
-        <tr>
-          <th>Date & Time</th>
-          <th>URL</th>
-          <th>Type</th>
-          <th>Risk Level</th>
-          <th>Action Taken</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td colspan="5" class="no-data">No detection history available yet.</td>
-        </tr>
-      </tbody>
-    </table>
+  </div>
+  
+  <div id="toast" class="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage"></span>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

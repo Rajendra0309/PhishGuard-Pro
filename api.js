@@ -262,11 +262,12 @@ class PhishingAPI {
     }
     
     try {
-      await fetch(`${API_CONFIG.endpoints.mongodb}/insertOne`, {
+      const response = await fetch(`${API_CONFIG.endpoints.mongodb}/insertOne`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'api-key': API_CONFIG.apiKeys.mongodb
+          'api-key': API_CONFIG.apiKeys.mongodb,
+          'Access-Control-Request-Headers': '*'
         },
         body: JSON.stringify({
           collection: 'detection_results',
@@ -275,6 +276,12 @@ class PhishingAPI {
           document: data
         })
       });
+      
+      if (!response.ok) {
+        throw new Error(`MongoDB API error: ${response.status} ${response.statusText}`);
+      }
+      
+      return await response.json();
     } catch (error) {
       console.error('MongoDB API error:', error);
     }

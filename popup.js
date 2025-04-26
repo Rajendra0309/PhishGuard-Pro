@@ -10,10 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const scanNowBtn = document.getElementById('scanNowBtn');
   const viewHistoryBtn = document.getElementById('viewHistoryBtn');
   const addWhitelistBtn = document.getElementById('addWhitelistBtn');
+  const apiStatus = document.getElementById('apiStatus');
 
   loadSettings();
   loadStats();
   checkCurrentSite();
+  checkApiStatus();
 
   scanToggle.addEventListener('change', () => {
     const isEnabled = scanToggle.checked;
@@ -109,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadSettings() {
     chrome.storage.local.get(
-      ['scanEnabled', 'detectionLevel', 'notificationsEnabled', 'backgroundScanEnabled', 'apiKeys'], 
+      ['scanEnabled', 'detectionLevel', 'notificationsEnabled', 'backgroundScanEnabled'], 
       data => {
         if (data.scanEnabled !== undefined) {
           scanToggle.checked = data.scanEnabled;
@@ -126,13 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (data.backgroundScanEnabled !== undefined) {
           backgroundScanToggle.checked = data.backgroundScanEnabled;
-        }
-        
-        const apiStatusEl = document.getElementById('apiStatus');
-        if (apiStatusEl) {
-          const vtStatus = data.apiKeys?.virustotal ? '✓' : '✗';
-          const gmStatus = data.apiKeys?.gemini ? '✓' : '✗';
-          apiStatusEl.textContent = `API Status: VirusTotal ${vtStatus} | Gemini ${gmStatus}`;
         }
       }
     );
@@ -161,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         chrome.runtime.sendMessage({ 
           type: 'checkUrl', 
-          url: currentUrl 
+          url: currentUrl
         }, response => {
           updateSiteStatus(response);
         });
@@ -181,5 +176,33 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       siteStatus.textContent = 'Unable to analyze';
     }
+  }
+  
+  function checkApiStatus() {
+    chrome.runtime.sendMessage({ type: 'checkApiStatus' }, response => {
+      if (response && response.status) {
+        const status = response.status;
+        const virusTotal = status.virusTotal ? '✓' : '✗';
+        const gemini = status.gemini ? '✓' : '✗';
+        
+        apiStatus.textContent = `API Status: VirusTotal ${virusTotal} | Gemini ${gemini}`;
+        
+        if (status.virusTotal && status.gemini) {
+          apiStatus.className = 'api-status api-success';
+        } else if (status.virusTotal || status.gemini) {
+          apiStatus.className = 'api-status';
+        } else {
+          apiStatus.className = 'api-status api-error';
+        }
+      } else {
+        apiStatus.textContent = 'API Status: Checking...';
+      }
+    });
+  }
+
+  const threatCount = 1;
+  const threatCounterElement = document.querySelector('.threat-counter');
+  if (threatCounterElement) {
+    threatCounterElement.textContent = threatCount.toString();
   }
 });

@@ -16,7 +16,6 @@ let VIRUSTOTAL_KEY = '';
 let GEMINI_KEY = '';
 
 try {
-  const { saveDetection, getDetectionHistory, getStatistics } = require('./db');
   const fs = require('fs');
   const path = require('path');
   
@@ -40,8 +39,13 @@ try {
 } catch (e) {}
 
 chrome.storage.local.get(['apiKeys'], (data) => {
-  if (data.apiKeys && data.apiKeys.virustotal) {
-    VIRUSTOTAL_KEY = data.apiKeys.virustotal;
+  if (data.apiKeys) {
+    if (data.apiKeys.virustotal) {
+      VIRUSTOTAL_KEY = data.apiKeys.virustotal;
+    }
+    if (data.apiKeys.gemini) {
+      GEMINI_KEY = data.apiKeys.gemini;
+    }
   }
 });
 
@@ -61,18 +65,6 @@ chrome.runtime.onInstalled.addListener(() => {
   
   initWeeklyStats();
   setupAlarms();
-  
-  try {
-    if (typeof getStatistics === 'function') {
-      getStatistics().then(stats => {
-        if (stats) {
-          chrome.storage.local.set({ 
-            detectionStats: stats
-          });
-        }
-      });
-    }
-  } catch (e) {}
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -121,6 +113,59 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   else if (message.type === 'toggleBackgroundScan') {
     chrome.storage.local.set({ backgroundScanEnabled: message.enabled });
     sendResponse({ success: true });
+    return true;
+  }
+  else if (message.type === 'checkApiStatus') {
+    sendResponse({ 
+      status: {
+        virusTotal: !!VIRUSTOTAL_KEY,
+        gemini: !!GEMINI_KEY
+      }
+    });
+    return true;
+  }
+  else if (message.type === 'showNotification') {
+    chrome.notifications.create(`phishing-url-${Date.now()}`, {
+      type: 'basic',
+      iconUrl: 'images/icon128.png',
+      title: 'Suspicious URL Detected!',
+      message: `A potentially dangerous URL was found: ${new URL(message.url).hostname} (${message.confidence}% risk)`,
+      priority: 2
+    });
+    return true;
+  }
+  else if (message.type === 'logThreatDetection') {
+    logThreatDetection(message.threatType, message.platform, message.url);
+    return true;
+  } 
+  else if (message.type === 'phishingFullPageDetection') {
+    logPhishingDetection(message.url, message.confidence, 'full_page');
+    
+    chrome.notifications.create(`phishing-page-${Date.now()}`, {
+      type: 'basic',
+      iconUrl: 'images/icon128.png',
+      title: 'CRITICAL: Phishing Site Detected!',
+      message: `You are currently on a dangerous website. Please navigate away immediately for your safety.`,
+      priority: 2
+    });
+    return true;
+  }
+  else if (message.type === 'checkPageSafety') {
+    checkUrl(message.url)
+      .then(result => {
+        if (result.isPhishing) {
+          chrome.action.setBadgeText({ 
+            text: '!', 
+            tabId: sender.tab?.id 
+          });
+          chrome.action.setBadgeBackgroundColor({ 
+            color: '#ff0000', 
+            tabId: sender.tab?.id 
+          });
+        }
+        sendResponse({ result });
+      })
+      .catch(error => sendResponse({ error: error.message }));
     return true;
   }
 });
@@ -294,7 +339,10 @@ async function checkVirusTotal(url) {
     const submitData = await submitResponse.json();
     const analysisId = submitData.data.id;
     
-    const resultResponse = await fetch(`${VIRUSTOTAL_API}/analyses/${analysisId}`, {
+    // Added delay to give VirusTotal time to process
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const resultResponse = await fetch(`${VIRUSTOTAL_API}/${analysisId}`, {
       method: 'GET',
       headers: { 'x-apikey': VIRUSTOTAL_KEY }
     });
@@ -530,12 +578,10 @@ async function checkTextWithGemini(text) {
 function analyzeTextLocally(text) {
   const lowerText = text.toLowerCase();
   
-  // Exclusion patterns (to avoid false positives)
   if (text.length < 200 || text.split(' ').length < 30) {
     return { isPhishing: false, confidence: 0.1, source: 'local-ml' };
   }
   
-  // Common search engine text patterns - Exclusions
   const searchPatterns = [
     /search results for/i,
     /results for/i,
@@ -552,7 +598,6 @@ function analyzeTextLocally(text) {
     }
   }
   
-  // Phishing indicators
   let score = 0;
   
   const phishingPatterns = [
@@ -580,7 +625,6 @@ function analyzeTextLocally(text) {
     }
   }
   
-  // Count urgency words
   const urgencyWords = ['urgent', 'immediately', 'alert', 'warning', 'attention', 'important', 'now', 'critical'];
   for (const word of urgencyWords) {
     const regex = new RegExp(`\\b${word}\\b`, 'gi');
@@ -590,12 +634,10 @@ function analyzeTextLocally(text) {
     }
   }
   
-  // Analyze sentence structures
   if (/please do not (ignore|delay)/i.test(lowerText)) {
     score += 0.1;
   }
   
-  // Email-like formatting in webpage
   if (/dear (valued|customer|user)/i.test(lowerText) && 
       /thank you for your/i.test(lowerText) && 
       /sincerely|regards|team/i.test(lowerText)) {
@@ -670,15 +712,6 @@ function updateStats(isPhishing, url = '', type = '', confidence = 0) {
       if (dayIndex !== -1) {
         weeklyStats.detections[dayIndex]++;
       }
-      
-      try {
-        if (typeof saveDetection === 'function') {
-          saveDetection({
-            ...detectionData,
-            result: { isPhishing: true, confidence }
-          });
-        }
-      } catch (e) {}
     }
     
     chrome.storage.local.set({ 
@@ -714,4 +747,94 @@ function generateEmptyWeeklyData() {
   }
   
   return { labels, scans, detections };
+}
+
+function logThreatDetection(threatType, platform, url) {
+  chrome.storage.local.get(['detectionStats', 'threatStats'], (data) => {
+    const stats = data.detectionStats || detectionStats;
+    
+    const threatStats = data.threatStats || {
+      byType: {},
+      byPlatform: {}
+    };
+    
+    stats.phishingDetected++;
+    
+    if (!threatStats.byType[threatType]) {
+      threatStats.byType[threatType] = 1;
+    } else {
+      threatStats.byType[threatType]++;
+    }
+    
+    if (!threatStats.byPlatform[platform]) {
+      threatStats.byPlatform[platform] = 1;
+    } else {
+      threatStats.byPlatform[platform]++;
+    }
+    
+    chrome.storage.local.set({
+      detectionStats: stats,
+      threatStats: threatStats
+    });
+    
+    const detectionData = {
+      timestamp: new Date().toISOString(),
+      url: url,
+      type: 'message',
+      threatType: threatType,
+      platform: platform,
+      action: 'Detected'
+    };
+    
+    chrome.storage.local.get(['detectionHistory'], (histData) => {
+      const history = histData.detectionHistory || [];
+      history.push(detectionData);
+      
+      if (history.length > 1000) {
+        history.splice(0, history.length - 1000);
+      }
+      
+      chrome.storage.local.set({ 
+        detectionHistory: history
+      });
+    });
+  });
+}
+
+function logPhishingDetection(url, confidence, detectionType) {
+  chrome.storage.local.get(['detectionStats', 'detectionHistory', 'weeklyStats'], (data) => {
+    const stats = data.detectionStats || detectionStats;
+    const history = data.detectionHistory || [];
+    
+    stats.phishingDetected++;
+    stats.lastDetection = new Date().toISOString();
+    
+    const weeklyStats = data.weeklyStats || generateEmptyWeeklyData();
+    const currentDay = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const dayIndex = weeklyStats.labels.indexOf(currentDay);
+    
+    if (dayIndex !== -1) {
+      weeklyStats.detections[dayIndex]++;
+    }
+    
+    const detectionData = {
+      timestamp: new Date().toISOString(),
+      url: url,
+      type: detectionType,
+      confidence: confidence,
+      action: 'Blocked'
+    };
+    
+    history.push(detectionData);
+    
+    if (history.length > 1000) {
+      history.splice(0, history.length - 1000);
+    }
+    
+    chrome.storage.local.set({ 
+      detectionStats: stats,
+      detectionHistory: history,
+      weeklyStats: weeklyStats
+    });
+  });
 }
