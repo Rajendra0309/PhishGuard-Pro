@@ -287,10 +287,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (!iconSpan || !textSpan) return;
     
-    // Clear existing classes
     iconSpan.className = 'fas';
     
-    // No significant change if trend is less than 0.1%
     if (Math.abs(trendValue) < 0.1) {
       iconSpan.className = 'fas fa-minus';
       iconSpan.style.color = 'var(--gray-500)';
@@ -301,30 +299,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const formattedValue = Math.abs(trendValue).toFixed(1);
     
     if (trendValue > 0) {
-      // Increase
       iconSpan.className = 'fas fa-arrow-up';
       
-      // For detection rate and high risk, increasing is bad
       if (elementId === 'rateTrend' || elementId === 'highRiskTrend') {
         iconSpan.className += ' trend-up';
         iconSpan.style.color = 'var(--danger)';
       } else {
-        // For scans, increasing is neutral/good
         iconSpan.className += ' trend-up';
         iconSpan.style.color = 'var(--success)';
       }
       
       textSpan.textContent = `${formattedValue}% increase`;
     } else {
-      // Decrease
       iconSpan.className = 'fas fa-arrow-down';
       
-      // For detection rate and high risk, decreasing is good
       if (elementId === 'rateTrend' || elementId === 'highRiskTrend') {
         iconSpan.className += ' trend-down';
         iconSpan.style.color = 'var(--success)';
       } else {
-        // For scans, decreasing is neutral/concerning
         iconSpan.className += ' trend-down';
         iconSpan.style.color = 'var(--danger)';
       }

@@ -1,14 +1,25 @@
 function synchronizeThreatDisplay() {
-  const threatCount = 1;
-  
-  // Update popup threat counter
+  try {
+    chrome.runtime.sendMessage({ type: 'getStats' }, (response) => {
+      if (response && response.stats) {
+        updateThreatCounter(response.stats.phishingDetected || 0);
+        updateSiteStatus();
+      }
+    });
+  } catch (e) {}
+}
+
+function updateThreatCounter(count) {
   const popupThreatElement = document.querySelector('.threat-counter');
   if (popupThreatElement) {
-    popupThreatElement.textContent = threatCount.toString();
+    popupThreatElement.textContent = count.toString();
   }
-  
-  // Update current site status
+}
+
+function updateSiteStatus() {
+  const threatCount = document.querySelectorAll('.phishguard-marked').length;
   const siteStatusElement = document.querySelector('.site-status-indicator');
+  
   if (siteStatusElement) {
     if (threatCount > 0) {
       siteStatusElement.innerHTML = `⚠️ ${threatCount} threat${threatCount > 1 ? 's' : ''} detected`;
@@ -24,3 +35,5 @@ function synchronizeThreatDisplay() {
 
 document.addEventListener('DOMContentLoaded', synchronizeThreatDisplay);
 window.updateThreatDisplay = synchronizeThreatDisplay;
+
+setInterval(synchronizeThreatDisplay, 5000);

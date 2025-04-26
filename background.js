@@ -128,43 +128,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.notifications.create(`phishing-url-${Date.now()}`, {
       type: 'basic',
       iconUrl: 'images/icon128.png',
-      title: 'Suspicious URL Detected!',
-      message: `A potentially dangerous URL was found: ${new URL(message.url).hostname} (${message.confidence}% risk)`,
+      title: 'Suspicious URL Detected',
+      message: `PhishGuard has detected a suspicious URL with ${message.confidence}% confidence: ${new URL(message.url).hostname}`,
       priority: 2
     });
+    sendResponse({ success: true });
     return true;
   }
   else if (message.type === 'logThreatDetection') {
-    logThreatDetection(message.threatType, message.platform, message.url);
+    logThreatDetection(
+      message.threatType, 
+      message.platform, 
+      message.url
+    );
+    sendResponse({ success: true });
     return true;
-  } 
+  }
   else if (message.type === 'phishingFullPageDetection') {
-    logPhishingDetection(message.url, message.confidence, 'full_page');
-    
-    chrome.notifications.create(`phishing-page-${Date.now()}`, {
-      type: 'basic',
-      iconUrl: 'images/icon128.png',
-      title: 'CRITICAL: Phishing Site Detected!',
-      message: `You are currently on a dangerous website. Please navigate away immediately for your safety.`,
-      priority: 2
-    });
+    logPhishingDetection(
+      message.url,
+      message.confidence,
+      'full_page'
+    );
+    sendResponse({ success: true });
     return true;
   }
   else if (message.type === 'checkPageSafety') {
     checkUrl(message.url)
-      .then(result => {
-        if (result.isPhishing) {
-          chrome.action.setBadgeText({ 
-            text: '!', 
-            tabId: sender.tab?.id 
-          });
-          chrome.action.setBadgeBackgroundColor({ 
-            color: '#ff0000', 
-            tabId: sender.tab?.id 
-          });
-        }
-        sendResponse({ result });
-      })
+      .then(result => sendResponse({ result }))
       .catch(error => sendResponse({ error: error.message }));
     return true;
   }
@@ -268,8 +259,10 @@ async function checkUrl(url) {
     if (data.detectionLevel === 'low') threshold = 0.7;
     if (data.detectionLevel === 'high') threshold = 0.3;
     
-    VIRUSTOTAL_KEY = data.apiKeys?.virustotal || VIRUSTOTAL_KEY;
-    GEMINI_KEY = data.apiKeys?.gemini || GEMINI_KEY;
+    if (data.apiKeys) {
+      VIRUSTOTAL_KEY = data.apiKeys.virustotal || VIRUSTOTAL_KEY;
+      GEMINI_KEY = data.apiKeys.gemini || GEMINI_KEY;
+    }
     
     let result = null;
     
@@ -339,7 +332,6 @@ async function checkVirusTotal(url) {
     const submitData = await submitResponse.json();
     const analysisId = submitData.data.id;
     
-    // Added delay to give VirusTotal time to process
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     const resultResponse = await fetch(`${VIRUSTOTAL_API}/${analysisId}`, {
@@ -477,7 +469,9 @@ async function analyzeContent(data) {
     if (storageData.detectionLevel === 'low') threshold = 0.7;
     if (storageData.detectionLevel === 'high') threshold = 0.3;
     
-    GEMINI_KEY = storageData.apiKeys?.gemini || GEMINI_KEY;
+    if (storageData.apiKeys) {
+      GEMINI_KEY = storageData.apiKeys.gemini || GEMINI_KEY;
+    }
     
     let result;
     

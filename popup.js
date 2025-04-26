@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   scanToggle.addEventListener('change', () => {
     const isEnabled = scanToggle.checked;
-    statusText.textContent = isEnabled ? 'Protection Active' : 'Protection Disabled';
     
+    statusText.textContent = isEnabled ? 'Protection Active' : 'Protection Disabled';
     chrome.storage.local.set({ scanEnabled: isEnabled });
     
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
@@ -58,6 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
       if (tabs[0]) {
         const currentUrl = tabs[0].url;
+        
+        if (!currentUrl || !currentUrl.startsWith('http')) {
+          scanNowBtn.textContent = 'Scan Now';
+          scanNowBtn.disabled = false;
+          siteStatus.textContent = 'Not applicable';
+          return;
+        }
         
         chrome.runtime.sendMessage({ 
           type: 'checkUrl', 
@@ -110,34 +117,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadSettings() {
-    chrome.storage.local.get(
-      ['scanEnabled', 'detectionLevel', 'notificationsEnabled', 'backgroundScanEnabled'], 
-      data => {
-        if (data.scanEnabled !== undefined) {
-          scanToggle.checked = data.scanEnabled;
-          statusText.textContent = data.scanEnabled ? 'Protection Active' : 'Protection Disabled';
-        }
-        
-        if (data.detectionLevel) {
-          detectionLevel.value = data.detectionLevel;
-        }
-        
-        if (data.notificationsEnabled !== undefined) {
-          notificationsToggle.checked = data.notificationsEnabled;
-        }
-        
-        if (data.backgroundScanEnabled !== undefined) {
-          backgroundScanToggle.checked = data.backgroundScanEnabled;
-        }
+    chrome.storage.local.get(['scanEnabled', 'detectionLevel', 'notificationsEnabled', 'backgroundScanEnabled'], (data) => {
+      scanToggle.checked = data.scanEnabled !== false;
+      statusText.textContent = scanToggle.checked ? 'Protection Active' : 'Protection Disabled';
+      
+      if (data.detectionLevel) {
+        detectionLevel.value = data.detectionLevel;
       }
-    );
+      
+      notificationsToggle.checked = data.notificationsEnabled !== false;
+      backgroundScanToggle.checked = data.backgroundScanEnabled !== false;
+    });
   }
 
   function loadStats() {
-    chrome.runtime.sendMessage({ type: 'getStats' }, response => {
+    chrome.runtime.sendMessage({ type: 'getStats' }, (response) => {
       if (response && response.stats) {
-        totalScanned.textContent = response.stats.totalScanned.toLocaleString();
-        phishingDetected.textContent = response.stats.phishingDetected.toLocaleString();
+        totalScanned.textContent = response.stats.totalScanned || 0;
+        phishingDetected.textContent = response.stats.phishingDetected || 0;
       }
     });
   }
@@ -167,7 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateSiteStatus(response) {
     if (response && response.result) {
       if (response.result.isPhishing) {
-        siteStatus.textContent = '⚠️ Suspicious site detected!';
+        const confidence = Math.round(response.result.confidence * 100);
+        siteStatus.textContent = `⚠️ Phishing Risk Detected (${confidence}%)`;
         siteStatus.className = 'site-status danger';
       } else {
         siteStatus.textContent = '✓ No threats detected';
@@ -175,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } else {
       siteStatus.textContent = 'Unable to analyze';
+      siteStatus.className = 'site-status';
     }
   }
   
