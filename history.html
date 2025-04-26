@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhishGuard Pro - Detection History</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f7fa;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+    
+    h1 {
+      margin-top: 0;
+      color: #2c3e50;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+    }
+    
+    .stats {
+      display: flex;
+      margin-bottom: 20px;
+    }
+    
+    .stat-box {
+      background-color: #f8fafc;
+      border-radius: 8px;
+      padding: 15px;
+      margin-right: 20px;
+      flex: 1;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2d3748;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      color: #718096;
+      font-size: 14px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    th, td {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid #edf2f7;
+    }
+    
+    th {
+      background-color: #f7fafc;
+      color: #4a5568;
+      font-weight: 600;
+    }
+    
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+    
+    .risk-high {
+      color: #e53e3e;
+      font-weight: bold;
+    }
+    
+    .risk-medium {
+      color: #dd6b20;
+    }
+    
+    .risk-low {
+      color: #38a169;
+    }
+    
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #718096;
+      font-style: italic;
+    }
+    
+    .chart-container {
+      margin: 30px 0;
+      height: 300px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>PhishGuard Pro - Detection History</h1>
+    
+    <div class="stats">
+      <div class="stat-box">
+        <div class="stat-value" id="totalScanned">0</div>
+        <div class="stat-label">Total Scans</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="phishingDetected">0</div>
+        <div class="stat-label">Threats Detected</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="detectionRate">0%</div>
+        <div class="stat-label">Detection Rate</div>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <canvas id="detectionChart"></canvas>
+    </div>
+    
+    <h2>Recent Detections</h2>
+    <table id="detectionsTable">
+      <thead>
+        <tr>
+          <th>Date & Time</th>
+          <th>URL</th>
+          <th>Type</th>
+          <th>Risk Level</th>
+          <th>Action Taken</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="5" class="no-data">No detection history available yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="history.js"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Production build folder
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Cache and logs
+*.log
+.cache/
+.temp/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing coverage reports
+coverage/
+
+# Extension specific
+*.zip
+*.crx
+*.pem
+```

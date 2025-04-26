@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhishGuard Pro</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>PhishGuard Pro</h1>
+      <div class="toggle-container">
+        <label class="switch">
+          <input type="checkbox" id="scanToggle" checked>
+          <span class="slider round"></span>
+        </label>
+        <span id="statusText">Protection Active</span>
+      </div>
+    </header>
+    
+    <div class="stats-container">
+      <div class="stat-box">
+        <div class="stat-title">Scans</div>
+        <div class="stat-value" id="totalScanned">0</div>
+      </div>
+      <div class="stat-box warning">
+        <div class="stat-title">Threats</div>
+        <div class="stat-value" id="phishingDetected">0</div>
+      </div>
+    </div>
+    
+    <div class="current-site">
+      <h3>Current Site Status</h3>
+      <div class="site-status" id="siteStatus">Checking...</div>
+      <button id="addWhitelistBtn" class="small-btn">Add to Whitelist</button>
+      <div id="apiStatus" class="api-status">API Status: Checking...</div>
+    </div>
+    
+    <div class="settings">
+      <h3>Settings</h3>
+      <div class="setting-item">
+        <label for="detectionLevel">Detection Sensitivity</label>
+        <select id="detectionLevel">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      <div class="setting-item">
+        <label for="notificationsToggle">Notifications</label>
+        <label class="switch small">
+          <input type="checkbox" id="notificationsToggle" checked>
+          <span class="slider round"></span>
+        </label>
+      </div>
+      <div class="setting-item">
+        <label for="backgroundScanToggle">Background Scanning</label>
+        <label class="switch small">
+          <input type="checkbox" id="backgroundScanToggle" checked>
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <button id="scanNowBtn">Scan Now</button>
+      <a href="#" id="viewHistoryBtn">View History</a>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
